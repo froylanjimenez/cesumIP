@@ -546,7 +546,7 @@ var _quejaEstudiante = null;
 function buscarEstudianteQueja() {
   var q    = norm(document.getElementById('queja-buscar-est').value);
   var drop = document.getElementById('queja-drop');
-  if (_quejaEstudiante) return; // ya hay uno seleccionado
+  if (_quejaEstudiante) return;
   if (q.length < 2) { drop.classList.remove('open'); return; }
 
   var res = ESTUDIANTES.filter(function(e) {
@@ -555,12 +555,18 @@ function buscarEstudianteQueja() {
 
   if (!res.length) { drop.classList.remove('open'); return; }
 
-  drop.innerHTML = res.map(function(e) {
-    return '<div class="drop-item" onclick="seleccionarEstudianteQueja(' + JSON.stringify(e.nombre) + ',' + JSON.stringify(e.grupo) + ')">'
-      + e.nombre
-      + '<div class="drop-grupo">' + e.grupo + '</div>'
-      + '</div>';
-  }).join('');
+  drop.innerHTML = '';
+  res.forEach(function(e) {
+    var div = document.createElement('div');
+    div.className = 'drop-item';
+    div.innerHTML = e.nombre + '<div class="drop-grupo">' + e.grupo + '</div>';
+    // mousedown en lugar de click para que se dispare antes del blur del input
+    div.addEventListener('mousedown', function(ev) {
+      ev.preventDefault();
+      seleccionarEstudianteQueja(e.nombre, e.grupo);
+    });
+    drop.appendChild(div);
+  });
   drop.classList.add('open');
 }
 
