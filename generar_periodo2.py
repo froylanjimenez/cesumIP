@@ -20,7 +20,8 @@ from pathlib import Path
 # ─── Config ───────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(__file__).resolve().parent
 PORTAL_DIR = BASE_DIR                      # los informes viven junto al portal
-DATA_JS    = BASE_DIR / "data.js"
+BASE_JS    = BASE_DIR / "data_periodo1.js" # base inmutable (notas reales del Primer Periodo)
+DATA_JS    = BASE_DIR / "data.js"          # salida que consume el portal (Segundo Periodo)
 
 COLEGIO = "Concentracion Educativa del Sur de Montelibano"
 EXAMEN  = "Examen Final de Segundo Periodo"
@@ -227,7 +228,9 @@ def pie():
 # ─── Carga de datos (data.js) y generacion del Segundo Periodo ─────────────────
 
 def cargar_data_js():
-    txt = DATA_JS.read_text(encoding='utf-8')
+    # Siempre se parte de la base inmutable del Primer Periodo (idempotente).
+    fuente = BASE_JS if BASE_JS.exists() else DATA_JS
+    txt = fuente.read_text(encoding='utf-8')
     m  = re.search(r'const ESTUDIANTES\s*=\s*(\[.*?\]);', txt, re.S)
     m2 = re.search(r'const GRUPOS_POR_GRADO\s*=\s*(\{.*?\});', txt, re.S)
     estudiantes = json.loads(m.group(1))
@@ -735,7 +738,7 @@ def escribir_data_js(alumnos, grupos_por_grado):
 # ─── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print("📖 Leyendo data.js (Primer Periodo)...")
+    print(f"📖 Leyendo base de Primer Periodo ({BASE_JS.name if BASE_JS.exists() else DATA_JS.name})...")
     estudiantes, grupos_por_grado = cargar_data_js()
     print(f"   {len(estudiantes)} estudiantes")
 
