@@ -697,14 +697,35 @@ def informes_directores(alumnos_grado, grado_str, areas, colores_area):
 # ─── data.js de salida ─────────────────────────────────────────────────────────
 
 def escribir_data_js(alumnos, grupos_por_grado):
+    # Posiciones por grado y por grupo (mismo criterio que los informes: empate=min)
+    pos = {}
+    por_grado = {}
+    for a in alumnos:
+        por_grado.setdefault(a["grado"], []).append(a)
+    for lst in por_grado.values():
+        proms = [x["prom"] for x in lst]
+        total_grado = len(lst)
+        por_grupo = {}
+        for x in lst:
+            por_grupo.setdefault(x["grupo"], []).append(x["prom"])
+        for x in lst:
+            pg_grado = 1 + sum(1 for p in proms if p > x["prom"])
+            gp = por_grupo[x["grupo"]]
+            pg_grupo = 1 + sum(1 for p in gp if p > x["prom"])
+            pos[x["id"]] = (pg_grupo, len(gp), pg_grado, total_grado)
+
     estudiantes_json = [{
-        "id":       a["id"],
-        "nombre":   a["nombre"],
-        "grupo":    a["grupo"],
-        "grado":    a["grado"],
-        "promedio": a["promedio"],
-        "notas":    {ar: round(a["notas"][ar], 1) for ar in a["areas"]},
-        "archivo":  a["archivo"],
+        "id":          a["id"],
+        "nombre":      a["nombre"],
+        "grupo":       a["grupo"],
+        "grado":       a["grado"],
+        "promedio":    a["promedio"],
+        "notas":       {ar: round(a["notas"][ar], 1) for ar in a["areas"]},
+        "pos_grupo":   pos[a["id"]][0],
+        "total_grupo": pos[a["id"]][1],
+        "pos_grado":   pos[a["id"]][2],
+        "total_grado": pos[a["id"]][3],
+        "archivo":     a["archivo"],
     } for a in alumnos]
     data_js = (f"const ESTUDIANTES = {json.dumps(estudiantes_json, ensure_ascii=False)};\n\n"
                f"const GRUPOS_POR_GRADO = {json.dumps(grupos_por_grado, ensure_ascii=False)};\n")
